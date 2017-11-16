@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import com.cybor.studnet.activities.EditLessonActivity;
 import com.cybor.studnet.data.Configuration;
-import com.cybor.studnet.data.Lesson;
+import com.cybor.studnet.data.ScheduleRecord;
 
 import org.joda.time.format.DateTimeFormat;
 
@@ -21,17 +21,17 @@ import java.util.List;
 import io.realm.Realm;
 
 
-public class LessonsAdapter extends ArrayAdapter<Lesson> {
-    private List<Lesson> lessons;
+public class ScheduleAdapter extends ArrayAdapter<ScheduleRecord> {
+    private List<ScheduleRecord> scheduleRecords;
 
-    public LessonsAdapter(@NonNull Context context, @NonNull Lesson[] lessons) {
+    public ScheduleAdapter(@NonNull Context context, @NonNull ScheduleRecord[] lessons) {
         super(context, R.layout.lesson_vh, lessons);
-        this.lessons = Arrays.asList(lessons);
+        this.scheduleRecords = Arrays.asList(lessons);
     }
 
-    public LessonsAdapter(@NonNull Context context, @NonNull List<Lesson> lessons) {
+    public ScheduleAdapter(@NonNull Context context, @NonNull List<ScheduleRecord> lessons) {
         super(context, R.layout.lesson_vh, lessons);
-        this.lessons = lessons;
+        this.scheduleRecords = lessons;
     }
 
     @NonNull
@@ -42,28 +42,28 @@ public class LessonsAdapter extends ArrayAdapter<Lesson> {
         if (convertView == null)
             convertView = View.inflate(context, R.layout.lesson_vh, null);
 
-        Lesson lesson = lessons.get(position);
+        ScheduleRecord scheduleRecord = scheduleRecords.get(position);
         ((TextView) convertView.findViewById(R.id.number_tv))
                 .setText(context.getString(R.string.n_lesson).replace("{LESSON_NUMBER}", String.format("%s", position + 1)));
 
-        String auditory = lesson.getAuditory();
+        String auditory = scheduleRecord.getAuditory();
         TextView auditoryTV = convertView.findViewById(R.id.auditory_tv);
         auditoryTV.setText(auditory == null || auditory.isEmpty() ? context.getString(R.string.auditory_blank) : auditory);
 
-        String lessonName = lesson.getLessonName();
+        String lessonName = scheduleRecord.getScheduleRecordName();
         TextView lessonNameTV = convertView.findViewById(R.id.name_tv);
         lessonNameTV.setText(lessonName == null || lessonName.isEmpty() ? context.getString(R.string.lesson_name_blank) : lessonName);
 
         ((TextView) convertView.findViewById(R.id.lesson_start_time_tv))
-                .setText(lesson.getStartTime().toString(DateTimeFormat.mediumTime()));
+                .setText(scheduleRecord.getStartTime().toString(DateTimeFormat.mediumTime()));
 
         ((TextView) convertView.findViewById(R.id.lesson_end_time_tv))
-                .setText(lesson.getEndTime(Configuration
+                .setText(scheduleRecord.getEndTime(Configuration
                         .getInstance(Realm.getDefaultInstance())
                         .getLessonDuration()).toString(DateTimeFormat.mediumTime()));
 
         convertView.setOnClickListener(v -> context.startActivity(new Intent(context, EditLessonActivity.class)
-                .putExtra("number", lesson.getNumber())));
+                .putExtra("number", scheduleRecords.indexOf(scheduleRecord) + 1)));
         return convertView;
     }
 }

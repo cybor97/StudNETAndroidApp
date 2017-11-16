@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import com.cybor.studnet.R;
 import com.cybor.studnet.data.Configuration;
-import com.cybor.studnet.data.Lesson;
+import com.cybor.studnet.data.ScheduleRecord;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -37,22 +37,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_layout);
 
-        topPanelCollapseButton = (ImageView) findViewById(R.id.top_panel_collapse_button);
+        topPanelCollapseButton = findViewById(R.id.top_panel_collapse_button);
         topPanelCollapseButton.setOnClickListener(this);
 
-        buttonsPanelCollapseButton = (ImageView) findViewById(R.id.buttons_panel_collapse_button);
+        buttonsPanelCollapseButton = findViewById(R.id.buttons_panel_collapse_button);
         buttonsPanelCollapseButton.setOnClickListener(this);
 
         lessonDurationExpandedContainer = findViewById(R.id.lesson_duration_expanded_container);
-        lessonDurationCollapsedTV = (TextView) findViewById(R.id.lesson_duration_collapsed_tv);
+        lessonDurationCollapsedTV = findViewById(R.id.lesson_duration_collapsed_tv);
         lessonDurationCollapsedTV.setOnClickListener(this);
 
         buttonsContainer = findViewById(R.id.buttons_container);
-        buttonsCollapsedTV = (TextView) findViewById(R.id.buttons_collapsed_tv);
+        buttonsCollapsedTV = findViewById(R.id.buttons_collapsed_tv);
         buttonsCollapsedTV.setOnClickListener(this);
 
-        currentLessonTV = (TextView) findViewById(R.id.current_lesson_tv);
-        timeToEndTV = (TextView) findViewById(R.id.time_to_end_tv);
+        currentLessonTV = findViewById(R.id.current_lesson_tv);
+        timeToEndTV = findViewById(R.id.time_to_end_tv);
 
         findViewById(R.id.messenger_button).setOnClickListener(this);
         findViewById(R.id.schedule_button).setOnClickListener(this);
@@ -84,11 +84,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     Realm _realm = Realm.getDefaultInstance();
                     Configuration configuration = Configuration.getInstance(_realm);
-                    Duration lessonDuration = configuration.getLessonDuration();
-                    List<Lesson> lessons = _realm.where(Lesson.class).findAll();
+                    Duration lessonDuration = configuration.getLessonDuration(),
+                            breakDuration = configuration.getBreakDuration();
+                    List<ScheduleRecord> scheduleRecords = _realm.where(ScheduleRecord.class).findAll();
                     while (!Thread.interrupted()) {
-                        Lesson currentLesson = Lesson.getCurrent(lessons, configuration);
-                        if (currentLesson == null) {
+                        ScheduleRecord currentScheduleRecord = ScheduleRecord.getCurrent(scheduleRecords, configuration);
+                        if (currentScheduleRecord == null) {
                             runOnUiThread(() -> {
                                 if (lessonDurationExpandedContainer.getVisibility() == VISIBLE)
                                     collapseLessonStatePanel();
@@ -100,29 +101,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 e.printStackTrace();
                             }
                         } else {
-                            String lessonNumber = Integer.toString(currentLesson.getNumber() + 1);
+                            String scheduleRecordNumber = String.format("%s", scheduleRecords.indexOf(currentScheduleRecord) + 1);
                             Duration timeToEnd = new Duration(DateTime
                                     .now(DateTimeZone.forTimeZone(Calendar.getInstance().getTimeZone()))
                                     .withYear(1970)
                                     .withMonthOfYear(1)
                                     .withDayOfMonth(1)
                                     .plusHours(1),
-                                    currentLesson.getEndTime(lessonDuration));
+                                    currentScheduleRecord.getEndTime(lessonDuration));
 
                             runOnUiThread(() -> {
                                 if (lessonDurationCollapsedTV.getVisibility() == VISIBLE) {
                                     lessonDurationCollapsedTV.setText(shortState
                                             .replace("{TIME}", shortFormatter.print(timeToEnd.toPeriod()))
-                                            .replace("{LESSON_NUMBER}", lessonNumber)
-                                            .replace("{STATE}", getString(currentLesson.isCurrentBreak(lessonDuration) ?
+                                            .replace("{LESSON_NUMBER}", scheduleRecordNumber)
+                                            .replace("{STATE}", getString(currentScheduleRecord.isCurrentBreak(lessonDuration, breakDuration) ?
                                                     R.string.lesson_break :
                                                     R.string.lesson)));
                                 } else {
-                                    currentLessonTV.setText(nLesson.replace("{LESSON_NUMBER}", lessonNumber));
+                                    currentLessonTV.setText(nLesson.replace("{LESSON_NUMBER}", scheduleRecordNumber));
 
                                     timeToEndTV.setText(timeToEndStr
                                             .replace("{TIME}", formatter.print(timeToEnd.toPeriod()))
-                                            .replace("{STATE}", currentLesson.isCurrentBreak(lessonDuration) ?
+                                            .replace("{STATE}", currentScheduleRecord.isCurrentBreak(lessonDuration, breakDuration) ?
                                                     lessonBreakStr : lessonStr));
                                 }
                             });

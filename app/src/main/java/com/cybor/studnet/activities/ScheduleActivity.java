@@ -6,9 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ListView;
 
-import com.cybor.studnet.LessonsAdapter;
 import com.cybor.studnet.R;
-import com.cybor.studnet.data.Lesson;
+import com.cybor.studnet.ScheduleAdapter;
+import com.cybor.studnet.data.ScheduleRecord;
 
 import io.realm.Realm;
 
@@ -18,8 +18,8 @@ public class ScheduleActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.schedule_layout);
         ((ListView) findViewById(R.id.lessons_lv))
-                .setAdapter(new LessonsAdapter(this, Realm.getDefaultInstance()
-                        .where(Lesson.class)
+                .setAdapter(new ScheduleAdapter(this, Realm.getDefaultInstance()
+                        .where(ScheduleRecord.class)
                         .findAll()));
     }
 
