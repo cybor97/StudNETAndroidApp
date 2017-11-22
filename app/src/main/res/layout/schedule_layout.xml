@@ -2,38 +2,58 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_marginTop="?android:attr/actionBarSize"
+    android:orientation="vertical"
+    android:paddingTop="20dp">
 
-    <FrameLayout
-        android:id="@+id/header_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFF"
-        android:paddingBottom="10dp"
-        android:paddingLeft="5dp"
-        android:paddingRight="5dp"
-        android:paddingTop="10dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/schedule"
-            android:textColor="@color/primary_text"
-            android:textSize="12pt" />
-
-        <Button
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:background="@mipmap/back_icon" />
-    </FrameLayout>
 
     <ListView
         android:id="@+id/lessons_lv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@+id/header_container"
+        android:layout_above="@+id/navigation_container"
         android:layout_margin="5dp"
         android:listSelector="@android:color/transparent" />
+
+    <RelativeLayout
+        android:id="@+id/navigation_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#FFF"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/prev_button"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:text="@string/back" />
+
+        <TextView
+            android:id="@+id/date_tv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/next_button"
+            android:layout_alignTop="@+id/prev_button"
+            android:layout_toEndOf="@+id/prev_button"
+            android:layout_toLeftOf="@+id/next_button"
+            android:layout_toRightOf="@+id/prev_button"
+            android:layout_toStartOf="@+id/next_button"
+            android:gravity="center"
+            android:padding="5dp"
+            android:textAlignment="gravity" />
+
+        <Button
+            android:id="@+id/next_button"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:text="@string/forward" />
+    </RelativeLayout>
+
 </RelativeLayout>
