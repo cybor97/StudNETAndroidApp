@@ -19,6 +19,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".activities.BaseActivity" />
+        <activity
+            android:name=".activities.AuthActivity"
+            android:noHistory="true" />
         <activity android:name=".activities.MainActivity" />
         <activity android:name=".activities.MessengerActivity" />
         <activity android:name=".activities.ScheduleActivity" />
