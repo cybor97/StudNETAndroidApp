@@ -8,9 +8,12 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.cybor.studnet.APIClient;
+import com.cybor.studnet.APIResponseHandler;
 import com.cybor.studnet.R;
 import com.cybor.studnet.data.Configuration;
 import com.cybor.studnet.data.ScheduleRecord;
+import com.loopj.android.http.RequestParams;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -18,6 +21,7 @@ import org.joda.time.Duration;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -26,11 +30,15 @@ import io.realm.Realm;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import static com.cybor.studnet.APIClient.GET_SCHEDULE;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener,
+        APIResponseHandler {
+    private final int SCHEDULE_REQUEST = 0;
     private View lessonDurationExpandedContainer, buttonsContainer;
     private ImageView topPanelCollapseButton, buttonsPanelCollapseButton;
     private TextView lessonDurationCollapsedTV, currentLessonTV, timeToEndTV, buttonsCollapsedTV;
+    private APIClient apiClient;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,6 +71,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final String timeToEndStr = getString(R.string.time_to_end);
         final String lessonBreakStr = getString(R.string.lesson_break);
         final String lessonStr = getString(R.string.lesson);
+
+        apiClient = APIClient.getInstance();
+        if (!getIntent().getBooleanExtra("upToDate", false))
+            apiClient.get(0, GET_SCHEDULE,
+                    new RequestParams("scheduleId", 1), this);
 
         Executors.newSingleThreadExecutor()
                 .execute(() ->
@@ -189,5 +202,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .alpha(1)
                 .withEndAction(() -> topPanelCollapseButton.setImageResource(R.mipmap.up_icon))
                 .start();
+    }
+
+    @Override
+    public void onSuccess(int requestId, int statusCode, String response) {
+        if (requestId == SCHEDULE_REQUEST && statusCode == 200)
+            Realm.getDefaultInstance().executeTransaction(_realm -> _realm
+                    .copyToRealmOrUpdate(Arrays.asList(apiClient.getGson().fromJson(response, ScheduleRecord[].class))));
+    }
+
+    @Override
+    public void onError(int requestId, int statusCode, String response, Throwable error) {
+
     }
 }
