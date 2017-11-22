@@ -11,6 +11,9 @@
         <item name="android:windowBackground">@mipmap/background</item>
 
         <item name="android:divider">@color/divider</item>
+
+        <item name="toolbarStyle">@style/Widget.Toolbar</item>
+
     </style>
 
     <style name="AppDialogTheme" parent="Theme.AppCompat.Light.Dialog">
@@ -22,4 +25,9 @@
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="windowNoTitle">true</item>
     </style>
+
+    <style name="Widget.Toolbar" parent="@style/Widget.AppCompat.Toolbar">
+        <item name="contentInsetStart">0dp</item>
+    </style>
+
 </resources>
