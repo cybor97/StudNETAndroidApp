@@ -31,11 +31,11 @@ public class EditLessonActivity extends AppCompatActivity implements View.OnClic
         Intent intent = getIntent();
         scheduleRecord = Realm.getDefaultInstance()
                 .where(ScheduleRecord.class)
-                .equalTo("number", intent.getIntExtra("number", -1))
+                .equalTo("id", intent.getIntExtra("id", -1))
                 .findFirst();
         if (scheduleRecord != null) {
             nameTV.setText(scheduleRecord.getScheduleRecordName());
-            auditoryTV.setText(scheduleRecord.getAuditory());
+            auditoryTV.setText(scheduleRecord.getAuditoryNumber());
         } else onBackPressed();
 
         findViewById(R.id.save_button).setOnClickListener(this);
@@ -47,7 +47,7 @@ public class EditLessonActivity extends AppCompatActivity implements View.OnClic
         if (view.getId() == R.id.save_button) {
             Realm.getDefaultInstance().executeTransaction(_realm -> {
                 scheduleRecord.setScheduleRecordName(nameTV.getText().toString());
-                scheduleRecord.setAuditory(auditoryTV.getText().toString());
+                scheduleRecord.setAuditoryNumber(auditoryTV.getText().toString());
             });
             onBackPressed();
         }

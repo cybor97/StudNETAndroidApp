@@ -1,26 +1,34 @@
 package com.cybor.studnet.data;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Duration;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
-import java.util.Calendar;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.format.DateTimeFormatterBuilder;
+
 import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
+import io.realm.annotations.PrimaryKey;
+
+import static com.cybor.studnet.Utils.getCurrentTime;
 
 public class ScheduleRecord extends RealmObject {
+    @PrimaryKey
     private int id;
-
+    @Expose(serialize = false, deserialize = false)
     private Schedule schedule;
     private String scheduleRecordName;
-    private boolean isEven;
-    private long _scheduleRecordStartTime;
-    private String auditory;
+    private int weekday;
+    private int isEven;
+    @SerializedName("scheduleRecordStartTime")
+    private String _scheduleRecordStartTime;
+    private String auditoryNumber;
     @Ignore
-    private DateTime scheduleRecordStartTime;
+    private transient DateTime scheduleRecordStartTime;
 
     public static ScheduleRecord getCurrent(List<ScheduleRecord> scheduleRecords, Configuration configuration) {
         Duration lessonDuration = configuration.getLessonDuration();
@@ -59,32 +67,39 @@ public class ScheduleRecord extends RealmObject {
     }
 
     public boolean isEven() {
-        return isEven;
+        return isEven == 1;
     }
 
     public ScheduleRecord setEven(boolean even) {
-        Realm.getDefaultInstance().executeTransaction(realm -> isEven = even);
+        Realm.getDefaultInstance().executeTransaction(realm -> isEven = even ? 1 : 0);
         return this;
     }
 
-    public String getAuditory() {
-        return auditory;
+    public String getAuditoryNumber() {
+        return auditoryNumber;
     }
 
-    public ScheduleRecord setAuditory(String auditory) {
-        Realm.getDefaultInstance().executeTransaction(realm -> this.auditory = auditory);
+    public ScheduleRecord setAuditoryNumber(String auditoryNumber) {
+        Realm.getDefaultInstance().executeTransaction(realm -> this.auditoryNumber = auditoryNumber);
         return this;
     }
 
     public DateTime getStartTime() {
-        if (scheduleRecordStartTime == null && _scheduleRecordStartTime != -1)
-            scheduleRecordStartTime = new DateTime(_scheduleRecordStartTime);
+        if (scheduleRecordStartTime == null && _scheduleRecordStartTime != null)
+            scheduleRecordStartTime = DateTime.parse(_scheduleRecordStartTime,
+                    //FIXME:Weak place(as for optimization). Replace with static field.
+                    new DateTimeFormatterBuilder()
+                            .appendHourOfDay(1)
+                            .appendLiteral(':')
+                            .appendMinuteOfHour(1)
+                            .toFormatter());
         return scheduleRecordStartTime;
     }
 
     public ScheduleRecord setStartTime(DateTime startTime) {
         this.scheduleRecordStartTime = startTime;
-        this._scheduleRecordStartTime = startTime == null ? -1 : startTime.getMillis();
+        this._scheduleRecordStartTime = startTime == null ? null :
+                String.format("%s:%s", startTime.getHourOfDay(), startTime.getMinuteOfHour());
         return this;
     }
 
@@ -95,37 +110,13 @@ public class ScheduleRecord extends RealmObject {
     }
 
     public boolean isCurrent(Duration lessonDuration) {
-        DateTime nowTime = DateTime
-                .now(DateTimeZone.forTimeZone(Calendar.getInstance().getTimeZone()))
-                .withYear(1970).withMonthOfYear(1).withDayOfMonth(1).plusHours(1);
+        DateTime nowTime = getCurrentTime();
         return getStartTime().isBefore(nowTime) && getEndTime(lessonDuration).isAfter(nowTime);
     }
 
     public boolean isCurrentBreak(Duration lessonDuration, Duration breakDuration) {
         DateTime endTime = getEndTime(lessonDuration);
-        DateTime nowTime = DateTime
-                .now(DateTimeZone.forTimeZone(Calendar.getInstance().getTimeZone()))
-                .withYear(1970).withMonthOfYear(1).withDayOfMonth(1).plusHours(1);
+        DateTime nowTime = getCurrentTime();
         return endTime.isBefore(nowTime) && endTime.plus(breakDuration).isAfter(nowTime);
     }
-
-//    public static void generateLessons(final int count, Configuration configuration, Realm realm) {
-//        Duration breakDuration = configuration.getBreakDuration();
-//        for (int i = 0; i < count; i++) {
-//            final int i1 = i;
-//            Lesson lesson = realm.where(Lesson.class).equalTo("number", i1 + 1).findFirst();
-//            if (lesson == null)
-//                lesson = new Lesson().setNumber(i1 + 1);
-//            final Lesson _lesson = lesson;
-//
-//            realm.executeTransaction(_realm -> _realm.copyToRealmOrUpdate(_lesson
-//                    .setStartTime(configuration.getLessonsBeginTime()
-//                            .plus(configuration.getLessonDuration().multipliedBy(i1))
-//                            .plus(i1 >= configuration.getLongBreakAfter() + 1 ?
-//                                    breakDuration.multipliedBy(i1 - 1)
-//                                            .plus(breakDuration.multipliedBy(configuration.getLongBreakCoefficient())) :
-//                                    breakDuration.multipliedBy(i1))))
-//                    .setBreakDuration(configuration.getBreakDuration()));
-//        }
-//    }
 }

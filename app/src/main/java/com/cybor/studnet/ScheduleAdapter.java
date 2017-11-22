@@ -46,7 +46,7 @@ public class ScheduleAdapter extends ArrayAdapter<ScheduleRecord> {
         ((TextView) convertView.findViewById(R.id.number_tv))
                 .setText(context.getString(R.string.n_lesson).replace("{LESSON_NUMBER}", String.format("%s", position + 1)));
 
-        String auditory = scheduleRecord.getAuditory();
+        String auditory = scheduleRecord.getAuditoryNumber();
         TextView auditoryTV = convertView.findViewById(R.id.auditory_tv);
         auditoryTV.setText(auditory == null || auditory.isEmpty() ? context.getString(R.string.auditory_blank) : auditory);
 
@@ -63,7 +63,7 @@ public class ScheduleAdapter extends ArrayAdapter<ScheduleRecord> {
                         .getLessonDuration()).toString(DateTimeFormat.mediumTime()));
 
         convertView.setOnClickListener(v -> context.startActivity(new Intent(context, EditLessonActivity.class)
-                .putExtra("number", scheduleRecords.indexOf(scheduleRecord) + 1)));
+                .putExtra("id", scheduleRecord.getId())));
         return convertView;
     }
 }
