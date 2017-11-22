@@ -11,6 +11,8 @@ import com.loopj.android.http.TextHttpResponseHandler;
 
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.client.CookieStore;
+import cz.msebera.android.httpclient.cookie.Cookie;
 
 public class APIClient {
 
@@ -19,16 +21,17 @@ public class APIClient {
     public static final String SIGN_UP = "/auth/signUp";
     public static final String GET_SCHEDULE = "/data/getScheduleRecords";
     private static APIClient instance;
+    private CookieStore cookieStore;
     private AsyncHttpClient client;
     private Gson gson;
 
     private APIClient(Context context) {
         this.client = new AsyncHttpClient();
 
-        client.setCookieStore(new PersistentCookieStore(context));
+        cookieStore = new PersistentCookieStore(context);
+        client.setCookieStore(cookieStore);
         client.setUserAgent("API/StudNET/AndroidApp/" + BuildConfig.VERSION_NAME);
-        client.setMaxRetriesAndTimeout(10, 1000);
-
+        client.setMaxRetriesAndTimeout(10, 500);
         gson = new GsonBuilder().serializeNulls().create();
     }
 
@@ -42,6 +45,13 @@ public class APIClient {
 
     public Gson getGson() {
         return gson;
+    }
+
+    public boolean hasAccessToken() {
+        for (Cookie current : cookieStore.getCookies())
+            if (current.getName().equals("token"))
+                return true;
+        return false;
     }
 
     public void get(int requestId, String method, RequestParams params, APIResponseHandler responseHandler) {
@@ -71,6 +81,10 @@ public class APIClient {
                         responseHandler.onSuccess(requestId, status, response);
                     }
                 });
+    }
+
+    public void getSchedule(int requestId, APIResponseHandler callback) {
+        get(requestId, GET_SCHEDULE, new RequestParams("scheduleId", 1), callback);
     }
 
 }

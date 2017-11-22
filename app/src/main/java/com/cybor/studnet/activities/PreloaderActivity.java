@@ -4,20 +4,22 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import com.cybor.studnet.APIClient;
 import com.cybor.studnet.APIResponseHandler;
 import com.cybor.studnet.R;
 import com.cybor.studnet.data.Configuration;
 import com.cybor.studnet.data.ScheduleRecord;
-import com.loopj.android.http.RequestParams;
 
 import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Executors;
 
 import io.realm.Realm;
 
-import static com.cybor.studnet.APIClient.GET_SCHEDULE;
+import static android.widget.Toast.LENGTH_LONG;
 
 public class PreloaderActivity extends Activity implements APIResponseHandler {
     private APIClient apiClient;
@@ -35,17 +37,18 @@ public class PreloaderActivity extends Activity implements APIResponseHandler {
 
                     Realm realm = Realm.getDefaultInstance();
                     Configuration.getInstance(realm);
-
                 });
-        apiClient.get(0, GET_SCHEDULE,
-                new RequestParams("scheduleId", 1), this);
+        apiClient.getSchedule(0, this);
     }
 
     @Override
     public void onSuccess(int requestId, int statusCode, String response) {
         if (requestId == 0 && statusCode == 200) {
-            Realm.getDefaultInstance().executeTransaction(_realm -> _realm
-                    .copyToRealmOrUpdate(Arrays.asList(apiClient.getGson().fromJson(response, ScheduleRecord[].class))));
+            Realm.getDefaultInstance().executeTransaction(_realm -> {
+                _realm.delete(ScheduleRecord.class);
+                _realm.copyToRealmOrUpdate(Arrays.asList(apiClient.getGson()
+                        .fromJson(response, ScheduleRecord[].class)));
+            });
             startActivity(new Intent(this, MainActivity.class)
                     .putExtra("upToDate", true));
         }
@@ -55,5 +58,17 @@ public class PreloaderActivity extends Activity implements APIResponseHandler {
     public void onError(int requestId, int statusCode, String response, Throwable error) {
         if (statusCode == 403)
             startActivity(new Intent(this, AuthActivity.class));
+        else if (statusCode == 0)
+            if (apiClient.hasAccessToken())
+                startActivity(new Intent(this, MainActivity.class));
+            else {
+                Toast.makeText(this, R.string.no_data, LENGTH_LONG).show();
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        finish();
+                    }
+                }, 5000);
+            }
     }
 }

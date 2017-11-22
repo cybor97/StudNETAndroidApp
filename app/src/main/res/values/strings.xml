@@ -24,6 +24,7 @@
     <string name="lesson_break">break</string>
 
     <string name="no_lesson">Lessons aren\'t begin or already finished.</string>
+    <string name="no_data">Sorry you should either have stable network connection either be authorized before.</string>
 
     <string name="n_lesson">{LESSON_NUMBER} lesson</string>
     <string name="time_to_end">{TIME}\ntill end of {STATE}</string>

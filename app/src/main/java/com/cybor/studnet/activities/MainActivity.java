@@ -13,7 +13,6 @@ import com.cybor.studnet.APIResponseHandler;
 import com.cybor.studnet.R;
 import com.cybor.studnet.data.Configuration;
 import com.cybor.studnet.data.ScheduleRecord;
-import com.loopj.android.http.RequestParams;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -30,7 +29,6 @@ import io.realm.Realm;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
-import static com.cybor.studnet.APIClient.GET_SCHEDULE;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener,
         APIResponseHandler {
@@ -74,8 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         apiClient = APIClient.getInstance();
         if (!getIntent().getBooleanExtra("upToDate", false))
-            apiClient.get(0, GET_SCHEDULE,
-                    new RequestParams("scheduleId", 1), this);
+            apiClient.getSchedule(SCHEDULE_REQUEST, this);
 
         Executors.newSingleThreadExecutor()
                 .execute(() ->
@@ -207,8 +204,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onSuccess(int requestId, int statusCode, String response) {
         if (requestId == SCHEDULE_REQUEST && statusCode == 200)
-            Realm.getDefaultInstance().executeTransaction(_realm -> _realm
-                    .copyToRealmOrUpdate(Arrays.asList(apiClient.getGson().fromJson(response, ScheduleRecord[].class))));
+            Realm.getDefaultInstance().executeTransaction(_realm -> {
+                _realm.delete(ScheduleRecord.class);
+                _realm.copyToRealmOrUpdate(Arrays.asList(apiClient.getGson()
+                        .fromJson(response, ScheduleRecord[].class)));
+            });
     }
 
     @Override
